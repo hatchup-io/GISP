@@ -1,0 +1,208 @@
+# Cursor AI Project Rules
+
+## Django REST API Backend
+
+This project is a Django 6 REST API backend with DRF, JWT auth, Redis cache, PostgreSQL, and optional MinIO/S3 storage.
+
+### Main Documentation
+
+-   Project Rules: .cursorrules (this file)
+-   App Template: app_template/ (scaffolding for new apps)
+-   Settings: core/settings.py
+-   Base Views: common/apis/views/common_base_views.py
+-   Base Models: common/models/common_base_models.py
+
+### Key Principles
+
+1. **Base Classes First** - Inherit from HatchUpBaseModel, HatchupAPIView/HatchupModelViewset
+2. **Services Layer** - Non-trivial business logic in `services/`, views stay thin
+3. **OpenAPI Everywhere** - Use `@extend_schema` / `@extend_schema_view` on all endpoints
+4. **Custom Admin Site** - Register with `admin_site`, extend `_HatchUpBaseAdmin`
+5. **Response Envelope** - All API responses wrapped as `{ message, status, pagination, data }`
+6. **Soft Delete** - Use `HatchUpBaseManager`; prefer `is_active`/`is_deleted` over hard delete
+
+### Tech Stack
+
+-   Python 3.12+, Django 6, Django REST Framework 3.16
+-   drf-spectacular (OpenAPI), drf-simplejwt, django-redis, django-filter
+-   PostgreSQL, Redis (cache), MinIO/S3 (media/static)
+-   UV for dependency management; `pyproject.toml` and `uv.lock` are the source of truth
+
+### When Generating Code
+
+Always:
+
+-   ✅ Inherit models from `HatchUpBaseModel`
+-   ✅ Use `HatchupAPIView` or `HatchupModelViewset` (and variants) for APIs
+-   ✅ Add `@extend_schema` / `@extend_schema_view` for drf-spectacular
+-   ✅ Register admin with `admin_site` and extend `_HatchUpBaseAdmin`
+-   ✅ Put business logic in `services/` when reusable or non-trivial
+-   ✅ Use double quotes, correct import order (stdlib → third-party → local)
+-   ✅ Name model files `{app}_{entity}_models.py`
+-   ✅ Mount app URLs under `/api/` in `core/urls.py`
+
+Never:
+
+-   ❌ Hard delete; use soft delete via HatchUpBaseManager
+-   ❌ Put heavy logic in views; move to services
+-   ❌ Use default Django admin; use `admin_site`
+-   ❌ Skip OpenAPI decorators on API endpoints
+-   ❌ Import `request` into services; pass `validated_data` or domain args
+-   ❌ Use single quotes for strings
+-   ❌ Create models without inheriting HatchUpBaseModel
+
+### Project Structure
+
+```
+core/           # Settings, packages, wsgi/asgi
+common/         # Base models, views, admins, managers
+auth/           # JWT, roles, object permissions
+users/          # User model, registration, profile APIs
+google_integration/  # Google Calendar + Meet, API key auth
+
+Per app: models/, apis/views/, apis/serializers/, apis/urls.py, admin/, services/, configs/constants/
+```
+
+### Code Generation Format
+
+Reference `app_template/` .py-tpl files. Replace `{{ app_name }}`, `{{ entity }}`, `{{ Entity }}`, `{{ Tag }}`, `{{ camel_case_app_name }}`.
+
+**Model** — `app_template/models/{{ app_name }}_{{ entity }}_models.py-tpl`:
+
+```python
+from __future__ import annotations
+
+from django.db import models
+
+from common.models.common_base_models import HatchUpBaseModel
+
+
+class {{ Entity }}(HatchUpBaseModel):
+    """Replace with your model fields."""
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "{{ Entity }}"
+        verbose_name_plural = "{{ Entity }}s"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.name
+```
+
+**Serializer** — `app_template/apis/serializers/{{ entity }}_serializers.py-tpl`:
+
+```python
+from __future__ import annotations
+
+from rest_framework import serializers
+
+from {{ app_name }}.models.{{ app_name }}_{{ entity }}_models import {{ Entity }}
+
+
+class {{ Entity }}Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = {{ Entity }}
+        fields = ["id", "name", "description", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+```
+
+**ViewSet** — `app_template/apis/views/{{ entity }}_viewsets.py-tpl`:
+
+```python
+from __future__ import annotations
+
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.permissions import IsAuthenticated
+
+from common.apis.views.common_base_views import HatchupModelViewset
+from {{ app_name }}.apis.serializers.{{ entity }}_serializers import {{ Entity }}Serializer
+from {{ app_name }}.models.{{ app_name }}_{{ entity }}_models import {{ Entity }}
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="List {{ entity }}s",
+        description="List all {{ entity }}s.",
+        responses={200: {{ Entity }}Serializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="Retrieve {{ entity }}",
+        description="Retrieve a {{ entity }} by ID.",
+        responses={200: {{ Entity }}Serializer()},
+    ),
+    create=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="Create {{ entity }}",
+        description="Create a new {{ entity }}.",
+        request={{ Entity }}Serializer(),
+        responses={201: {{ Entity }}Serializer()},
+    ),
+    update=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="Update {{ entity }}",
+        description="Update a {{ entity }}.",
+        request={{ Entity }}Serializer(),
+        responses={200: {{ Entity }}Serializer()},
+    ),
+    partial_update=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="Partially update {{ entity }}",
+        description="Partially update a {{ entity }}.",
+        request={{ Entity }}Serializer(partial=True),
+        responses={200: {{ Entity }}Serializer()},
+    ),
+    destroy=extend_schema(
+        tags=["{{ Tag }}"],
+        summary="Delete {{ entity }}",
+        description="Delete a {{ entity }}.",
+        responses={204: None},
+    ),
+)
+class {{ Entity }}ViewSet(HatchupModelViewset):
+    queryset = {{ Entity }}.objects.all()
+    serializer_class = {{ Entity }}Serializer
+    permission_classes = [IsAuthenticated]
+```
+
+**URLs** — `app_template/apis/urls.py-tpl`:
+
+```python
+from rest_framework.routers import DefaultRouter
+
+from {{ app_name }}.apis.views.{{ entity }}_viewsets import {{ Entity }}ViewSet
+
+router = DefaultRouter()
+router.register(r"", {{ Entity }}ViewSet, basename="{{ entity }}")
+
+urlpatterns = []
+urlpatterns += router.urls
+```
+
+**Admin** — `app_template/admin/{{ entity }}_admin.py-tpl`:
+
+```python
+from django.contrib import admin
+
+from common.admins.base import _HatchUpBaseAdmin, admin_site
+from {{ app_name }}.models.{{ app_name }}_{{ entity }}_models import {{ Entity }}
+
+
+@admin.register({{ Entity }}, site=admin_site)
+class {{ Entity }}Admin(_HatchUpBaseAdmin):
+    list_display = ("id", "name", "is_active", "created_at")
+    search_fields = ("name", "description")
+```
+
+**Single-endpoint API** (e.g. login, register): Use `HatchupAPIView` with `@extend_schema`. See `users/apis/views/user_views.py` or `auth/apis/views/auth_login_views.py`.
+
+### Integration Notes
+
+-   For new apps: use `app_template/` (replace `{{ app_name }}`, `{{ entity }}`, `{{ Entity }}`, `{{ Tag }}`, `{{ camel_case_app_name }}`; rename `.py-tpl` → `.py`)
+-   Add app to `INSTALLED_APPS` in `core/settings.py`
+-   Add `path("api/{app}/", include("{app}.apis.urls"))` in `core/urls.py`
+-   Run `python manage.py makemigrations {app}` after model changes
