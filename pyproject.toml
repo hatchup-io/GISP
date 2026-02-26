@@ -1,6 +1,6 @@
 [project]
 name = "google-integration-service-proxy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Google Integration Service Proxy - client for Google-integration backend calendar events API"
 readme = "README.md"
 requires-python = ">=3.12"
