@@ -45,6 +45,24 @@ uv pip install -e .
 
 Then in Python: `from google_integration_proxy import GoogleIntegrationClient`
 
+## Base URL from environment
+
+You can omit `base_url` and have it resolved from the environment:
+
+-   **ENV** or **ENVIRONMENT** (e.g. `staging`, `production`, `local`):
+    -   **staging** → `https://api.google-integration.service.staging.hatchup.capital`
+    -   **production** → `https://api.google-integration.service.hatchup.capital`
+    -   **local** (or unset) → use **GOOGLE_INTEGRATION_BASE_URL** (must be set for local)
+
+```python
+import os
+os.environ["ENV"] = "staging"
+client = GoogleIntegrationClient(api_key="your-api-key")  # uses staging URL
+
+# Or pass base_url explicitly to ignore env
+client = GoogleIntegrationClient("https://custom.example.com", api_key="...")
+```
+
 ## Usage
 
 ```python

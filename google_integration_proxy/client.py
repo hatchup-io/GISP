@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import httpx
 
 from google_integration_proxy.exceptions import (
@@ -10,13 +12,50 @@ from google_integration_proxy.exceptions import (
 )
 
 
+# Base URLs by environment (env ENV or ENVIRONMENT)
+STAGING_BASE_URL = "https://api.google-integration.service.staging.hatchup.capital"
+PRODUCTION_BASE_URL = "https://api.google-integration.service.hatchup.capital"
+LOCAL_BASE_URL_ENV_VAR = "GOOGLE_INTEGRATION_BASE_URL"
+
+
+def get_base_url_from_env() -> str:
+    """
+    Resolve base URL from environment.
+    Reads ENV or ENVIRONMENT; for 'staging'/'production' returns fixed URLs,
+    for 'local' (or missing) returns GOOGLE_INTEGRATION_BASE_URL.
+    """
+    env = (
+        (os.environ.get("ENV") or os.environ.get("ENVIRONMENT") or "local")
+        .strip()
+        .lower()
+    )
+    if env == "staging":
+        return STAGING_BASE_URL
+    if env == "production":
+        return PRODUCTION_BASE_URL
+    base_url = os.environ.get(LOCAL_BASE_URL_ENV_VAR, "").strip()
+    if not base_url:
+        raise ValueError(
+            f"For local environment set {LOCAL_BASE_URL_ENV_VAR}; "
+            "or set ENV=staging|production to use a fixed base URL."
+        )
+    return base_url.rstrip("/")
+
+
 class GoogleIntegrationClient:
     """
     Sync client for the Google-integration backend calendar events API.
     Uses API key auth (X-API-Key or Authorization: Api-Key <key>).
     """
 
-    def __init__(self, base_url: str, *, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        *,
+        api_key: str | None = None,
+    ) -> None:
+        if base_url is None:
+            base_url = get_base_url_from_env()
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._client = httpx.Client(

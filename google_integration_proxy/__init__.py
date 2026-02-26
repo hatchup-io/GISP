@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from google_integration_proxy.client import GoogleIntegrationClient
+from google_integration_proxy.client import (
+    GoogleIntegrationClient,
+    get_base_url_from_env,
+    LOCAL_BASE_URL_ENV_VAR,
+    PRODUCTION_BASE_URL,
+    STAGING_BASE_URL,
+)
 from google_integration_proxy.events import EventsService
 from google_integration_proxy.exceptions import (
     GoogleIntegrationAPIError,
@@ -14,4 +20,8 @@ __all__ = [
     "EventsService",
     "GoogleIntegrationAPIError",
     "GoogleIntegrationAuthError",
+    "get_base_url_from_env",
+    "LOCAL_BASE_URL_ENV_VAR",
+    "PRODUCTION_BASE_URL",
+    "STAGING_BASE_URL",
 ]
