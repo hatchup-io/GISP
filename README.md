@@ -107,3 +107,34 @@ Attendee `role` must be one of: `required`, `optional`, `moderator`.
 
 -   Python 3.12+
 -   `httpx` for HTTP. No Django dependency.
+
+## Publishing to PyPI
+
+1. **Create a PyPI account** at [pypi.org](https://pypi.org/account/register/) and (optionally) create an API token under Account settings → API tokens.
+
+2. **Bump version** in `pyproject.toml` if needed (e.g. `version = "0.1.2"`).
+
+3. **Build and publish** with UV (recommended):
+
+    ```bash
+    uv build
+    uv publish
+    ```
+
+    When prompted, use your PyPI username and password, or set the token as the password. To use an API token non-interactively:
+
+    ```bash
+    uv publish --token pypi-YOUR_API_TOKEN
+    ```
+
+    Or with Twine (build then upload):
+
+    ```bash
+    pip install build twine
+    python -m build
+    twine upload dist/*
+    ```
+
+    For Test PyPI first: `uv publish --repository testpypi` or `twine upload --repository testpypi dist/*`.
+
+4. **Install from PyPI**: `pip install gisp` or `uv add gisp`.

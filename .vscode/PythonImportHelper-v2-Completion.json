@@ -1,0 +1,192 @@
+[
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "httpx",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "httpx",
+        "description": "httpx",
+        "detail": "httpx",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationAPIError",
+        "importPath": "google_integration_proxy.exceptions",
+        "description": "google_integration_proxy.exceptions",
+        "isExtraImport": true,
+        "detail": "google_integration_proxy.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationAuthError",
+        "importPath": "google_integration_proxy.exceptions",
+        "description": "google_integration_proxy.exceptions",
+        "isExtraImport": true,
+        "detail": "google_integration_proxy.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationClient",
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "isExtraImport": true,
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "TypedDict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationClient",
+        "kind": 6,
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "peekOfCode": "class GoogleIntegrationClient:\n    \"\"\"\n    Sync client for the Google-integration backend calendar events API.\n    Uses API key auth (X-API-Key or Authorization: Api-Key <key>).\n    \"\"\"\n    def __init__(\n        self,\n        base_url: str | None = None,\n        *,\n        api_key: str | None = None,",
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "get_base_url_from_env",
+        "kind": 2,
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "peekOfCode": "def get_base_url_from_env() -> str:\n    \"\"\"\n    Resolve base URL from environment.\n    Reads ENV or ENVIRONMENT; for 'staging'/'production' returns fixed URLs,\n    for 'local' (or missing) returns GOOGLE_INTEGRATION_BASE_URL.\n    \"\"\"\n    env = (\n        (os.environ.get(\"ENV\") or os.environ.get(\"ENVIRONMENT\") or \"local\")\n        .strip()\n        .lower()",
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "STAGING_BASE_URL",
+        "kind": 5,
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "peekOfCode": "STAGING_BASE_URL = \"https://api.google-integration.service.staging.hatchup.capital\"\nPRODUCTION_BASE_URL = \"https://api.google-integration.service.hatchup.capital\"\nLOCAL_BASE_URL_ENV_VAR = \"GOOGLE_INTEGRATION_BASE_URL\"\ndef get_base_url_from_env() -> str:\n    \"\"\"\n    Resolve base URL from environment.\n    Reads ENV or ENVIRONMENT; for 'staging'/'production' returns fixed URLs,\n    for 'local' (or missing) returns GOOGLE_INTEGRATION_BASE_URL.\n    \"\"\"\n    env = (",
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "PRODUCTION_BASE_URL",
+        "kind": 5,
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "peekOfCode": "PRODUCTION_BASE_URL = \"https://api.google-integration.service.hatchup.capital\"\nLOCAL_BASE_URL_ENV_VAR = \"GOOGLE_INTEGRATION_BASE_URL\"\ndef get_base_url_from_env() -> str:\n    \"\"\"\n    Resolve base URL from environment.\n    Reads ENV or ENVIRONMENT; for 'staging'/'production' returns fixed URLs,\n    for 'local' (or missing) returns GOOGLE_INTEGRATION_BASE_URL.\n    \"\"\"\n    env = (\n        (os.environ.get(\"ENV\") or os.environ.get(\"ENVIRONMENT\") or \"local\")",
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "LOCAL_BASE_URL_ENV_VAR",
+        "kind": 5,
+        "importPath": "google_integration_proxy.client",
+        "description": "google_integration_proxy.client",
+        "peekOfCode": "LOCAL_BASE_URL_ENV_VAR = \"GOOGLE_INTEGRATION_BASE_URL\"\ndef get_base_url_from_env() -> str:\n    \"\"\"\n    Resolve base URL from environment.\n    Reads ENV or ENVIRONMENT; for 'staging'/'production' returns fixed URLs,\n    for 'local' (or missing) returns GOOGLE_INTEGRATION_BASE_URL.\n    \"\"\"\n    env = (\n        (os.environ.get(\"ENV\") or os.environ.get(\"ENVIRONMENT\") or \"local\")\n        .strip()",
+        "detail": "google_integration_proxy.client",
+        "documentation": {}
+    },
+    {
+        "label": "EventsService",
+        "kind": 6,
+        "importPath": "google_integration_proxy.events",
+        "description": "google_integration_proxy.events",
+        "peekOfCode": "class EventsService:\n    \"\"\"Service for calendar events API (list, create, get, update, delete).\"\"\"\n    def __init__(self, client: GoogleIntegrationClient) -> None:\n        self._client = client\n    def list(\n        self,\n        *,\n        page: int | None = None,\n        page_size: int | None = None,\n        raw: bool = False,",
+        "detail": "google_integration_proxy.events",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationAPIError",
+        "kind": 6,
+        "importPath": "google_integration_proxy.exceptions",
+        "description": "google_integration_proxy.exceptions",
+        "peekOfCode": "class GoogleIntegrationAPIError(Exception):\n    \"\"\"Base exception for API errors from the Google-integration backend.\"\"\"\n    def __init__(\n        self,\n        message: str,\n        status_code: int | None = None,\n        body: dict | list | None = None,\n    ) -> None:\n        self.message = message\n        self.status_code = status_code",
+        "detail": "google_integration_proxy.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleIntegrationAuthError",
+        "kind": 6,
+        "importPath": "google_integration_proxy.exceptions",
+        "description": "google_integration_proxy.exceptions",
+        "peekOfCode": "class GoogleIntegrationAuthError(GoogleIntegrationAPIError):\n    \"\"\"Raised on 401/403 (invalid or inactive API key).\"\"\"\n    pass",
+        "detail": "google_integration_proxy.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "AttendeePayload",
+        "kind": 6,
+        "importPath": "google_integration_proxy.types",
+        "description": "google_integration_proxy.types",
+        "peekOfCode": "class AttendeePayload(TypedDict, total=False):\n    \"\"\"Payload for creating/updating an attendee. role: required | optional | moderator.\"\"\"\n    email: str\n    role: str\n    display_name: str\nclass CalendarEventPayload(TypedDict, total=False):\n    \"\"\"Payload for creating/updating a calendar event. start/end are ISO 8601 strings.\"\"\"\n    summary: str\n    description: str\n    start: str",
+        "detail": "google_integration_proxy.types",
+        "documentation": {}
+    },
+    {
+        "label": "CalendarEventPayload",
+        "kind": 6,
+        "importPath": "google_integration_proxy.types",
+        "description": "google_integration_proxy.types",
+        "peekOfCode": "class CalendarEventPayload(TypedDict, total=False):\n    \"\"\"Payload for creating/updating a calendar event. start/end are ISO 8601 strings.\"\"\"\n    summary: str\n    description: str\n    start: str\n    end: str\n    time_zone: str\n    attendees: list[AttendeePayload]\nclass AttendeeResponse(TypedDict, total=False):\n    \"\"\"Attendee as returned by the API.\"\"\"",
+        "detail": "google_integration_proxy.types",
+        "documentation": {}
+    },
+    {
+        "label": "AttendeeResponse",
+        "kind": 6,
+        "importPath": "google_integration_proxy.types",
+        "description": "google_integration_proxy.types",
+        "peekOfCode": "class AttendeeResponse(TypedDict, total=False):\n    \"\"\"Attendee as returned by the API.\"\"\"\n    id: int\n    email: str\n    role: str\n    display_name: str\n    created_at: str\nclass CalendarEventResponse(TypedDict, total=False):\n    \"\"\"Calendar event as returned by the API.\"\"\"\n    id: int",
+        "detail": "google_integration_proxy.types",
+        "documentation": {}
+    },
+    {
+        "label": "CalendarEventResponse",
+        "kind": 6,
+        "importPath": "google_integration_proxy.types",
+        "description": "google_integration_proxy.types",
+        "peekOfCode": "class CalendarEventResponse(TypedDict, total=False):\n    \"\"\"Calendar event as returned by the API.\"\"\"\n    id: int\n    google_event_id: str\n    summary: str\n    description: str\n    start: str\n    end: str\n    time_zone: str\n    meet_link: str",
+        "detail": "google_integration_proxy.types",
+        "documentation": {}
+    }
+]
