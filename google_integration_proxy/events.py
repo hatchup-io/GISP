@@ -97,8 +97,9 @@ class EventsService:
 
     def delete(self, event_id: int | str) -> None:
         """Soft-delete a calendar event; cancels on Google if synced."""
-        self._client._request(
+        result = self._client._request(
             "DELETE",
             f"api/google/events/{event_id}/",
             require_auth=True,
         )
+        return result if isinstance(result, dict) else None
