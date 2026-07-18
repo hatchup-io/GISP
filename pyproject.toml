@@ -1,6 +1,6 @@
 [project]
 name = "gisp"
-version = "0.1.4"
+version = "0.2.0"
 description = "Google Integration Service Proxy - client for Google-integration backend calendar events API"
 readme = "README.md"
 requires-python = ">=3.12"
