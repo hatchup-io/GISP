@@ -98,6 +98,31 @@ client.delete_event(event["id"])
 
 Attendee `role` must be one of: `required`, `optional`, `moderator`.
 
+## Check whether a Meet session was held
+
+The Calendar API can't tell you if a scheduled Meet actually happened. These call the
+backend's Meet check, which queries the Google Meet API, persists the result, and returns
+the updated event (`was_held`, `participant_count`, `held_started_at`, `held_ended_at`).
+
+```python
+# By numeric event id:
+event = client.check_event_held(event["id"])
+
+# By Meet meeting code (e.g. from the join link meet.google.com/abc-defg-hij):
+event = client.check_event_held_by_code("abc-defg-hij")
+print(event["was_held"], event["participant_count"])
+
+# Business rule: True only if the session was held with MORE THAN 2 participants.
+if client.is_session_held("abc-defg-hij"):
+    ...  # count the meeting as attended
+
+# Adjust the threshold if needed (default 3 = "more than 2"):
+client.is_session_held("abc-defg-hij", min_participants=2)
+```
+
+`is_session_held` returns `False` for: not held, held with 2 or fewer participants, no
+participant data available, or no matching event found.
+
 ## Exceptions
 
 -   `GoogleIntegrationAPIError`: base API error (status_code, body).

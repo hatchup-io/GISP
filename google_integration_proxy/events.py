@@ -64,6 +64,35 @@ class EventsService:
         )
         return result if isinstance(result, dict) else None
 
+    def check_held(self, event_id: int | str, *, raw: bool = False) -> dict | None:
+        """Check whether an event's Meet session was held (by numeric event id).
+
+        Queries the backend, which calls the Google Meet API, persists the result,
+        and returns the updated event (was_held, participant_count, etc.).
+        """
+        result = self._client._request(
+            "POST",
+            f"api/google/events/{event_id}/check-held/",
+            require_auth=True,
+            raw=raw,
+        )
+        return result if isinstance(result, dict) else None
+
+    def check_held_by_code(
+        self, meeting_code: str, *, raw: bool = False
+    ) -> dict | None:
+        """Check whether a Meet session was held, locating the event by meeting code
+        (e.g. "abc-defg-hij"). Returns the updated event dict, or None if not found.
+        """
+        result = self._client._request(
+            "POST",
+            "api/google/events/check-held-by-code/",
+            params={"meeting_code": meeting_code},
+            require_auth=True,
+            raw=raw,
+        )
+        return result if isinstance(result, dict) else None
+
     def get(self, event_id: int | str, *, raw: bool = False) -> dict | None:
         """Retrieve a calendar event by ID."""
         result = self._client._request(

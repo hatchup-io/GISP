@@ -45,7 +45,14 @@ class CalendarEventResponse(TypedDict, total=False):
     end: str
     time_zone: str
     meet_link: str
+    meeting_code: str
     is_synced: bool
+    # Populated by check-held: whether the Meet session was actually held.
+    was_held: bool
+    conference_checked_at: str
+    held_started_at: str
+    held_ended_at: str
+    participant_count: int
     attendees: list[AttendeeResponse]
     created_at: str
     updated_at: str

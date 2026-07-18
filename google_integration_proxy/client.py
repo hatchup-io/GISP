@@ -188,6 +188,33 @@ class GoogleIntegrationClient:
         """Soft-delete a calendar event; cancels on Google if synced."""
         self.events.delete(event_id)
 
+    def check_event_held(self, event_id: int | str, *, raw: bool = False) -> dict | None:
+        """Check whether an event's Meet session was held (by numeric event id)."""
+        return self.events.check_held(event_id, raw=raw)
+
+    def check_event_held_by_code(
+        self, meeting_code: str, *, raw: bool = False
+    ) -> dict | None:
+        """Check whether a Meet session was held, by meeting code (e.g. "abc-defg-hij")."""
+        return self.events.check_held_by_code(meeting_code, raw=raw)
+
+    def is_session_held(
+        self, meeting_code: str, *, min_participants: int = 3
+    ) -> bool:
+        """Return True only if the Meet session was held with more than 2 participants.
+
+        Business rule: a session counts as "held" only when more than two people
+        actually attended (default ``min_participants=3``). Anything else -- not held,
+        held with 2 or fewer participants, no participant data, or event not found --
+        returns False.
+        """
+        event = self.events.check_held_by_code(meeting_code)
+        if not isinstance(event, dict):
+            return False
+        was_held = bool(event.get("was_held"))
+        participant_count = event.get("participant_count") or 0
+        return was_held and participant_count >= min_participants
+
     def close(self) -> None:
         self._client.close()
 
