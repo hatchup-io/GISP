@@ -14,7 +14,13 @@ class AttendeePayload(TypedDict, total=False):
 
 
 class CalendarEventPayload(TypedDict, total=False):
-    """Payload for creating/updating a calendar event. start/end are ISO 8601 strings."""
+    """
+    Payload for creating/updating a calendar event. start/end are ISO 8601 strings.
+
+    There is deliberately no account field: the API key selects the Google account, and
+    sending ``google_account_email`` has no effect because the backend treats it as
+    read-only.
+    """
 
     summary: str
     description: str
@@ -39,6 +45,10 @@ class CalendarEventResponse(TypedDict, total=False):
 
     id: int
     google_event_id: str
+    # Google account this event was booked on. Read-only: determined by the API key used,
+    # not settable on create or update. Pinned at creation, so it keeps identifying the
+    # calendar the event lives on even if the API client is later re-bound.
+    google_account_email: str
     summary: str
     description: str
     start: str
@@ -56,3 +66,31 @@ class CalendarEventResponse(TypedDict, total=False):
     attendees: list[AttendeeResponse]
     created_at: str
     updated_at: str
+
+
+class ServiceCheck(TypedDict, total=False):
+    """One service entry from the readiness payload."""
+
+    name: str
+    # healthy | degraded | unhealthy | skipped | disabled
+    status: str
+    message: str
+    latency_ms: float
+    details: dict
+
+
+class ReadinessResponse(TypedDict, total=False):
+    """Readiness payload. HTTP status is 503 when any service is unhealthy."""
+
+    status: str
+    environment: str
+    timestamp: str
+    services: dict[str, ServiceCheck]
+
+
+class HealthResponse(TypedDict, total=False):
+    """Liveness payload."""
+
+    status: str
+    environment: str
+    timestamp: str
