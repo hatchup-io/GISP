@@ -1,0 +1,70 @@
+---
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    lint:
+        runs-on: self-hosted
+        steps:
+            - uses: actions/checkout@v6
+            - uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+                  python-version: '3.13'
+            - run: uv sync --all-groups
+            - run: uv run ruff check .
+            - run: uv run ruff format --check .
+
+    test:
+        runs-on: self-hosted
+        strategy:
+            matrix:
+                # The package declares requires-python >=3.12; test both so a 3.12-only
+                # deployment cannot be broken by 3.13-only syntax.
+                python-version: ['3.12', '3.13']
+        steps:
+            - uses: actions/checkout@v6
+            - uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+                  python-version: ${{ matrix.python-version }}
+            - run: uv sync --all-groups
+            # No network: every test runs against httpx.MockTransport.
+            - run: uv run pytest -v
+
+    build:
+        needs: [lint, test]
+        runs-on: self-hosted
+        steps:
+            - uses: actions/checkout@v6
+            - uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+                  python-version: '3.13'
+            # Proves the package still builds and installs as a consumer would get it,
+            # and that the public API imports from the built artifact rather than the
+            # source tree.
+            - run: uv build
+            - name: Import the built wheel in a clean environment
+              run: |
+                  uv venv /tmp/gisp-check
+                  VIRTUAL_ENV=/tmp/gisp-check uv pip install dist/*.whl
+                  /tmp/gisp-check/bin/python -c "
+                  import google_integration_proxy as g
+                  required = {
+                      'GoogleIntegrationClient', 'GoogleIntegrationAccountError',
+                      'GoogleIntegrationNotFoundError', 'GoogleIntegrationAuthError',
+                  }
+                  missing = required - set(g.__all__)
+                  assert not missing, f'missing exports: {missing}'
+                  print('public API present:', len(g.__all__), 'exports')
+                  "

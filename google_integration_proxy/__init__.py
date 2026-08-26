@@ -11,15 +11,19 @@ from google_integration_proxy.client import (
 )
 from google_integration_proxy.events import EventsService
 from google_integration_proxy.exceptions import (
+    GoogleIntegrationAccountError,
     GoogleIntegrationAPIError,
     GoogleIntegrationAuthError,
+    GoogleIntegrationNotFoundError,
 )
 
 __all__ = [
     "GoogleIntegrationClient",
     "EventsService",
     "GoogleIntegrationAPIError",
+    "GoogleIntegrationAccountError",
     "GoogleIntegrationAuthError",
+    "GoogleIntegrationNotFoundError",
     "get_base_url_from_env",
     "LOCAL_BASE_URL_ENV_VAR",
     "PRODUCTION_BASE_URL",

@@ -6,7 +6,13 @@ from google_integration_proxy.client import GoogleIntegrationClient
 
 
 class EventsService:
-    """Service for calendar events API (list, create, get, update, delete)."""
+    """
+    Service for calendar events API (list, create, get, update, delete).
+
+    Every call is scoped to the Google account bound to the client's API key, and results
+    report it as ``google_account_email``. See ``GoogleIntegrationClient`` for what that
+    implies about visibility across keys.
+    """
 
     def __init__(self, client: GoogleIntegrationClient) -> None:
         self._client = client
@@ -44,7 +50,12 @@ class EventsService:
         attendees: list[dict] | None = None,
         raw: bool = False,
     ) -> dict | None:
-        """Create a calendar event. Optionally syncs to Google and adds Meet link."""
+        """Create a calendar event with a Google Meet link.
+
+        Books on the account bound to this client's API key. The backend creates the local
+        record and the Google event in one transaction, so a Google failure leaves nothing
+        behind and raises rather than returning a half-created event.
+        """
         payload: dict = {
             "summary": summary,
             "start": start,
@@ -65,10 +76,15 @@ class EventsService:
         return result if isinstance(result, dict) else None
 
     def check_held(self, event_id: int | str, *, raw: bool = False) -> dict | None:
-        """Check whether an event's Meet session was held (by numeric event id).
+        """Check whether an event's Meet session was held, by **numeric event id**.
 
-        Queries the backend, which calls the Google Meet API, persists the result,
-        and returns the updated event (was_held, participant_count, etc.).
+        Queries the backend, which calls the Google Meet API as the account that booked
+        the event, persists the result, and returns the updated event (was_held,
+        participant_count, etc.).
+
+        ``event_id`` is the ``id`` field, not ``meeting_code`` or ``google_event_id``;
+        passing either of those raises ``GoogleIntegrationNotFoundError``. Use
+        ``check_held_by_code`` for a meeting code.
         """
         result = self._client._request(
             "POST",
@@ -82,7 +98,12 @@ class EventsService:
         self, meeting_code: str, *, raw: bool = False
     ) -> dict | None:
         """Check whether a Meet session was held, locating the event by meeting code
-        (e.g. "abc-defg-hij"). Returns the updated event dict, or None if not found.
+        (e.g. "abc-defg-hij").
+
+        Returns the updated event dict. Raises ``GoogleIntegrationNotFoundError`` if no
+        event with that code is visible to this API key - which includes codes belonging
+        to another key's account. Use ``GoogleIntegrationClient.is_session_held`` for a
+        boolean that treats not-found as "not held".
         """
         result = self._client._request(
             "POST",
