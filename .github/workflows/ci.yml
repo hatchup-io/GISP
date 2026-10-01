@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
     lint:
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
             - uses: astral-sh/setup-uv@v7
@@ -25,7 +25,7 @@ jobs:
             - run: uv run ruff format --check .
 
     test:
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         strategy:
             matrix:
                 # The package declares requires-python >=3.12; test both so a 3.12-only
@@ -43,7 +43,7 @@ jobs:
 
     build:
         needs: [lint, test]
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
             - uses: astral-sh/setup-uv@v7
