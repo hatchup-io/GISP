@@ -15,35 +15,17 @@ pip install -e .
 uv pip install -e .
 ```
 
-**In another project** — use one of the following from the other project’s environment:
+**In another project** — install from Git, pinned to a release tag. This is how the Hatchup backends consume it (for example `hatchup-platform-backend` pins `@v0.2`):
 
--   **Local path (editable):** if GISP is on the same machine
+```bash
+uv add "gisp @ git+https://github.com/hatchup-io/GISP.git@v0.2.1"
+# or
+pip install "git+https://github.com/hatchup-io/GISP.git@v0.2.1"
+```
 
-    ```bash
-    pip install -e /path/to/GISP
-    uv pip install -e /path/to/GISP
-    ```
+The repository is public, so no token is needed. For local work against a checkout, `uv pip install -e /path/to/GISP` also works.
 
--   **Local path (copy):** install as a normal package (no `-e`)
-
-    ```bash
-    pip install /path/to/GISP
-    uv pip install /path/to/GISP
-    ```
-
--   **From Git:** if GISP is in a Git repo (e.g. GitHub)
-
-    ```bash
-    pip install git+https://github.com/your-org/GISP.git
-    pip install git+https://github.com/your-org/GISP.git@main
-    uv pip install "gisp @ git+https://github.com/your-org/GISP.git"
-    ```
-
--   **From PyPI (after publishing):**
-    ```bash
-    pip install gisp
-    uv add gisp
-    ```
+GISP is **not published to PyPI**. The `gisp` name on PyPI belongs to an unrelated project, so `pip install gisp` installs the wrong package.
 
 Then in Python: `from google_integration_proxy import GoogleIntegrationClient`
 
@@ -51,16 +33,17 @@ Then in Python: `from google_integration_proxy import GoogleIntegrationClient`
 
 You can omit `base_url` and have it resolved from the environment:
 
--   **ENV** or **ENVIRONMENT** (e.g. `staging`, `production`, `local`):
-    -   **staging** → `https://api.google-integration.service.staging.hatchup.capital`
+-   **ENV** or **ENVIRONMENT** (e.g. `production`, `local`):
     -   **production** → `https://api.google-integration.service.hatchup.capital`
     -   **local** (or unset) → use **GOOGLE_INTEGRATION_BASE_URL** (must be set for local)
+
+There is only one deployed backend, `https://api.google-integration.service.hatchup.capital`; the Hatchup `_dev` services point at it too. The client still maps `ENV=staging` to `https://api.google-integration.service.staging.hatchup.capital`, but nothing is deployed there (it returns 404), so do not use `ENV=staging` — set `ENV=production` or pass `base_url` explicitly.
 
 ```python
 import os
 
-os.environ["ENV"] = "staging"
-client = GoogleIntegrationClient(api_key="your-api-key")  # uses staging URL
+os.environ["ENV"] = "production"
+client = GoogleIntegrationClient(api_key="your-api-key")  # uses the production URL
 
 # Or pass base_url explicitly to ignore env
 client = GoogleIntegrationClient("https://custom.example.com", api_key="...")
@@ -214,38 +197,18 @@ Error messages preserve the backend's wording, including DRF field-keyed validat
 
 ```bash
 uv sync --all-groups
-uv run pytest          # 30 tests, no network (httpx.MockTransport)
+uv run pytest          # no network (httpx.MockTransport)
 uv run ruff check .
 uv run ruff format --check .
 ```
 
-## Publishing to PyPI
+## Releasing
 
-1. **Create a PyPI account** at [pypi.org](https://pypi.org/account/register/) and (optionally) create an API token under Account settings → API tokens.
+Releases are Git tags (`v0.1.0` … `v0.2.1`); consumers pin a tag in their `pyproject.toml`. To release, bump `version` in `pyproject.toml`, merge to `main`, then tag that commit and push the tag:
 
-2. **Bump version** in `pyproject.toml` if needed (e.g. `version = "0.1.2"`).
+```bash
+git tag v0.3.0 origin/main
+git push origin v0.3.0
+```
 
-3. **Build and publish** with UV (recommended):
-
-    ```bash
-    uv build
-    uv publish
-    ```
-
-    When prompted, use your PyPI username and password, or set the token as the password. To use an API token non-interactively:
-
-    ```bash
-    uv publish --token pypi-YOUR_API_TOKEN
-    ```
-
-    Or with Twine (build then upload):
-
-    ```bash
-    pip install build twine
-    python -m build
-    twine upload dist/*
-    ```
-
-    For Test PyPI first: `uv publish --repository testpypi` or `twine upload --repository testpypi dist/*`.
-
-4. **Install from PyPI**: `pip install gisp` or `uv add gisp`.
+Then bump the pinned tag in each consuming backend. CI (`.github/workflows/ci.yml`) runs ruff and pytest on Python 3.12 and 3.13 for every push to `main` and every pull request; it does not publish anything.
