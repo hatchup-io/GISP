@@ -22,6 +22,9 @@ jobs:
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  # Not the shared ~/.cache/uv: the post-step prunes it while the
+                  # other runners on the host are still reading it.
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: '3.13'
             - run: uv sync --all-groups
             - run: uv run ruff check .
@@ -42,6 +45,7 @@ jobs:
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: ${{ matrix.python-version }}
             - run: uv sync --all-groups
             # No network: every test runs against httpx.MockTransport.
@@ -55,6 +59,7 @@ jobs:
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: '3.13'
             # Proves the package still builds and installs as a consumer would get it,
             # and that the public API imports from the built artifact rather than the
