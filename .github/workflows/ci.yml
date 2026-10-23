@@ -13,19 +13,28 @@ concurrency:
 
 jobs:
     lint:
-        runs-on: ubuntu-latest
+        # Never run a fork's pull request on our own runner: that is arbitrary
+        # code on our machine.
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: self-hosted
         steps:
             - uses: actions/checkout@v6
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  # Not the shared ~/.cache/uv: the post-step prunes it while the
+                  # other runners on the host are still reading it.
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: '3.13'
             - run: uv sync --all-groups
             - run: uv run ruff check .
             - run: uv run ruff format --check .
 
     test:
-        runs-on: ubuntu-latest
+        # Never run a fork's pull request on our own runner: that is arbitrary
+        # code on our machine.
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: self-hosted
         strategy:
             matrix:
                 # The package declares requires-python >=3.12; test both so a 3.12-only
@@ -36,6 +45,7 @@ jobs:
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: ${{ matrix.python-version }}
             - run: uv sync --all-groups
             # No network: every test runs against httpx.MockTransport.
@@ -43,12 +53,13 @@ jobs:
 
     build:
         needs: [lint, test]
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         steps:
             - uses: actions/checkout@v6
             - uses: astral-sh/setup-uv@v7
               with:
                   enable-cache: true
+                  cache-local-path: ${{ runner.temp }}/uv-cache
                   python-version: '3.13'
             # Proves the package still builds and installs as a consumer would get it,
             # and that the public API imports from the built artifact rather than the
@@ -56,9 +67,11 @@ jobs:
             - run: uv build
             - name: Import the built wheel in a clean environment
               run: |
-                  uv venv /tmp/gisp-check
-                  VIRTUAL_ENV=/tmp/gisp-check uv pip install dist/*.whl
-                  /tmp/gisp-check/bin/python -c "
+                  # The job's own temp dir: /tmp is shared by every runner on the host.
+                  venv="$RUNNER_TEMP/gisp-check"
+                  uv venv "$venv"
+                  VIRTUAL_ENV="$venv" uv pip install dist/*.whl
+                  "$venv/bin/python" -c "
                   import google_integration_proxy as g
                   required = {
                       'GoogleIntegrationClient', 'GoogleIntegrationAccountError',
